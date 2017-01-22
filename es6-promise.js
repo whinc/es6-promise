@@ -9,6 +9,7 @@ const State = {
     rejected: 2
 }
 
+
 class ES6Promise {
     constructor(executor) {
         this._state = State.pending;
@@ -54,7 +55,7 @@ class ES6Promise {
                     try {
                         let x = self._state === State.resolved ? onResolved(self._value) : onRejected(self._value);
                         // 'x' may be javascript value or thenable or promise, need resolve further
-                        self._resolveProcedure({ resolve, reject }, x);
+                        resolveProcedure({ resolve, reject }, x);
                     } catch (e) {
                         reject(e);
                     }
@@ -74,48 +75,54 @@ class ES6Promise {
         return promise2;
     }
 
-    _resolveProcedure({resolve, reject}, x) {
-        // 2.3.1 If promise and x refer to the same object, reject promise with a TypeError as the reason.
-        if (arguments[0] === x) {
-            throw new TypeError(arguments[0]);
-        }
 
-        if (x instanceof this.constructor) {    // 2.3.2 If x is a promise, adopt its state
-            console.log('tag1');
-            x.then(value => resolve(value), reason => reject(reason));
-        } else if ((typeof x === 'object') || (typeof x === 'function')) {  // 2.3.3 
-            console.log('tag2');
-            let resolvedOrRejected = false;
-            try {
-                let then = x.then;      // 2.3.3.1 Let then be x.then
-                if (typeof then === 'function') {   // 2.3.3 If then is a function, call it with x as this, first argument resolvePromise, and second argument rejectPromise, where:
-                    then.call(x, value => {
-                        if (!resolvedOrRejected) {
-                            this._resolveProcedure({ resolve, reject }, value); // 2.3.3.3.1 If/when resolvePromise is called with a value y, run [[Resolve]](promise, y).
-                            resolvedOrRejected = true;
-                        }       
-                        // 2.3.3.3.3 If both resolvePromise and rejectPromise are called, or multiple calls to the same argument are made, the first call takes precedence, and any further calls are ignored.
-                    }, reason => {
-                        if (!resolvedOrRejected) {
-                            reject(reason);             // 2.3.3.3.2 If/when rejectPromise is called with a reason r, reject promise with r.
-                            resolvedOrRejected = true;
-                        }
-                        // 2.3.3.3.3 If both resolvePromise and rejectPromise are called, or multiple calls to the same argument are made, the first call takes precedence, and any further calls are ignored.
-                    });
-                } else {                // 2.3.3.4 If then is not a function, fulfill promise with x.
-                    resolve(x);
-                }
-            } catch(e) {
-                if (!resolvedOrRejected) {
-                    // 2.3.3.2 If retrieving the property x.then results in a thrown exception e, reject promise with e as the reason.
-                    // 2.3.3.4 If calling then throws an exception e
-                    reject(e);              
-                }
+    static resolve(value) {
+        return new ES6Promise((resolve, reject) => resolveProcedure({resolve, reject: resolve}, value));
+    }
+
+    static reject(reason) {
+        return new ES6Promise((resolve, reject) => resolveProcedure({resolve: reject, reject}, reason));
+    }
+}
+
+function resolveProcedure({ resolve, reject }, x) {
+    // 2.3.1 If promise and x refer to the same object, reject promise with a TypeError as the reason.
+    if (arguments[0] === x) {
+        throw new TypeError(arguments[0]);
+    }
+
+    if (x instanceof ES6Promise) {    // 2.3.2 If x is a promise, adopt its state
+        x.then(value => resolve(value), reason => reject(reason));
+    } else if ((typeof x === 'object') || (typeof x === 'function')) {  // 2.3.3 
+        let resolvedOrRejected = false;
+        try {
+            let then = x.then;      // 2.3.3.1 Let then be x.then
+            if (typeof then === 'function') {   // 2.3.3 If then is a function, call it with x as this, first argument resolvePromise, and second argument rejectPromise, where:
+                then.call(x, value => {
+                    if (!resolvedOrRejected) {
+                        resolveProcedure({ resolve, reject }, value); // 2.3.3.3.1 If/when resolvePromise is called with a value y, run [[Resolve]](promise, y).
+                        resolvedOrRejected = true;
+                    }
+                    // 2.3.3.3.3 If both resolvePromise and rejectPromise are called, or multiple calls to the same argument are made, the first call takes precedence, and any further calls are ignored.
+                }, reason => {
+                    if (!resolvedOrRejected) {
+                        reject(reason);             // 2.3.3.3.2 If/when rejectPromise is called with a reason r, reject promise with r.
+                        resolvedOrRejected = true;
+                    }
+                    // 2.3.3.3.3 If both resolvePromise and rejectPromise are called, or multiple calls to the same argument are made, the first call takes precedence, and any further calls are ignored.
+                });
+            } else {                // 2.3.3.4 If then is not a function, fulfill promise with x.
+                resolve(x);
             }
-        } else {
-            console.log('tag3');
-            resolve(x);     // 2.3.4 If x is not an object or function, fulfill promise with x.
+        } catch (e) {
+            if (!resolvedOrRejected) {
+                // 2.3.3.2 If retrieving the property x.then results in a thrown exception e, reject promise with e as the reason.
+                // 2.3.3.4 If calling then throws an exception e
+                reject(e);
+            }
         }
+    } else {
+        resolve(x);     // 2.3.4 If x is not an object or function, fulfill promise with x.
     }
 }
 

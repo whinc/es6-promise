@@ -7,19 +7,15 @@ let p1 = new ES6Promise((resolve, reject) => {
 
 let p2 = new Promise((resolve, reject) => {
     setTimeout(() => {
-        resolve(2);
+        reject(8888);
+        // resolve(999);
     }, 1000);
 });
 
-p1.then((value) => {
-    console.log(value);
-    return p2;
-}, (reason) => {
-    console.log(reason);
-    return ;
-}).then(value => {
-    console.log(value);
-});
+ES6Promise.resolve(1)
+.then(value => value + 1, reason => reason)
+.then(value => ES6Promise.reject(value), reason => reason)
+.then(value => console.log('resolve:' + value), reason => console.log('reject:' + reason));
 
 
 
