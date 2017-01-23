@@ -75,6 +75,10 @@ class ES6Promise {
         return promise2;
     }
 
+    catch(onRejected) {
+        this.then(undefined, onRejected);
+    }
+
 
     static resolve(value) {
         return new ES6Promise((resolve, reject) => resolveProcedure({resolve, reject: resolve}, value));
