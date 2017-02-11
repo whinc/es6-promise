@@ -55,7 +55,7 @@ class ES6Promise {
                     try {
                         let x = self._state === State.fulfilled ? onFulfilled(self._value) : onRejected(self._value);
                         // 'x' may be javascript value or thenable or promise, need resolve further
-                        resolveProcedure({ resolve, reject }, x);
+                        resolveProcedure({ resolve, reject, promise2 }, x);
                     } catch (e) {
                         reject(e);
                     }
@@ -89,14 +89,14 @@ class ES6Promise {
     }
 }
 
-function resolveProcedure({ resolve, reject }, x) {
+function resolveProcedure({ resolve, reject, promise2 }, x) {
     // 2.3.1 If promise and x refer to the same object, reject promise with a TypeError as the reason.
-    if (arguments[0] === x) {
-        reject(new TypeError(arguments[0]));
+    if (promise2 === x) {
+        reject(new TypeError(x));
     }
 
     if (x instanceof ES6Promise) {    // 2.3.2 If x is a promise, adopt its state
-        x.then(value => resolveProcedure({resolve, reject}, value), reason => reject(reason));
+        x.then(value => resolveProcedure({resolve, reject, promise2}, value), reason => reject(reason));
     } else if ((typeof x === 'object' && x !== null) || (typeof x === 'function')) {  // 2.3.3 
         let resolvedOrRejected = false;
         try {
@@ -104,7 +104,7 @@ function resolveProcedure({ resolve, reject }, x) {
             if (typeof then === 'function') {   // 2.3.3 If then is a function, call it with x as this, first argument resolvePromise, and second argument rejectPromise, where:
                 then.call(x, value => {
                     if (!resolvedOrRejected) {
-                        resolveProcedure({ resolve, reject }, value); // 2.3.3.3.1 If/when resolvePromise is called with a value y, run [[Resolve]](promise, y).
+                        resolveProcedure({ resolve, reject, promise2 }, value); // 2.3.3.3.1 If/when resolvePromise is called with a value y, run [[Resolve]](promise, y).
                         resolvedOrRejected = true;
                     }
                     // 2.3.3.3.3 If both resolvePromise and rejectPromise are called, or multiple calls to the same argument are made, the first call takes precedence, and any further calls are ignored.
