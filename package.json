@@ -1,20 +1,22 @@
 {
-  "name": "es6-promise",
+  "name": "whinc-es6-promise",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-      "s1": "babel es6-promise.js -d es5 ",
-      "s2": "promises-aplus-tests test/es6-promise.test.js",
-    "test": "babel es6-promise.js -d es5 && promises-aplus-tests test/es6-promise.test.js",
-    "build": "babel-node test.js"
+      "build": "babel es6-promise.js -d es5",
+      "test": "promises-aplus-tests test/es6-promise.test.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["es6", "Promise", "Promise/A+", "ECMAScript6", "es2015"],
+  "author": "whinc",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whinc/es6-promise"
+  },
   "devDependencies": {
     "babel-cli": "^6.22.2",
     "babel-preset-es2015": "^6.22.0",
-        "promises-aplus-tests": "*"
+    "promises-aplus-tests": "*"
   }
 }
