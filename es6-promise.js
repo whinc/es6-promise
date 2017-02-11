@@ -5,7 +5,7 @@
 
 const State = {
     pending: 0,
-    resolved: 1,
+    fulfilled: 1,
     rejected: 2
 }
 
@@ -18,7 +18,7 @@ class ES6Promise {
 
         if (typeof executor === 'function') {
             let resolve = (value) => {
-                this._transition(State.resolved, value);
+                this._transition(State.fulfilled, value);
             };
 
             let reject = (value) => {
@@ -39,7 +39,7 @@ class ES6Promise {
         } 
     }
 
-    then(onResolved, onRejected) {
+    then(onFulfilled, onRejected) {
         let self = this;
 
         let promise2 = new ES6Promise((resolve, reject) => {
@@ -48,12 +48,12 @@ class ES6Promise {
                 setTimeout(() => {
                     // 2.2.2.1 it must be called after promise is fulfilled, with promise’s value as its first argument.
                     // 2.2.7.3 If onFulfilled is not a function and promise1 is fulfilled, promise2 must be fulfilled with the same value as promise1.
-                    onResolved = typeof onResolved === 'function' ? onResolved : v => v;
+                    onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;
                     // 2.2.3.1 it must be called after promise is rejected, with promise’s reason as its first argument.
                     // 2.2.7.4 If onRejected is not a function and promise1 is rejected, promise2 must be rejected with the same reason as promise1.
-                    onRejected = typeof onRejected === 'function' ? onRejected : v => v;
+                    onRejected = typeof onRejected === 'function' ? onRejected : v => { throw v};
                     try {
-                        let x = self._state === State.resolved ? onResolved(self._value) : onRejected(self._value);
+                        let x = self._state === State.fulfilled ? onFulfilled(self._value) : onRejected(self._value);
                         // 'x' may be javascript value or thenable or promise, need resolve further
                         resolveProcedure({ resolve, reject }, x);
                     } catch (e) {
@@ -92,12 +92,12 @@ class ES6Promise {
 function resolveProcedure({ resolve, reject }, x) {
     // 2.3.1 If promise and x refer to the same object, reject promise with a TypeError as the reason.
     if (arguments[0] === x) {
-        throw new TypeError(arguments[0]);
+        reject(new TypeError(arguments[0]));
     }
 
     if (x instanceof ES6Promise) {    // 2.3.2 If x is a promise, adopt its state
-        x.then(value => resolve(value), reason => reject(reason));
-    } else if ((typeof x === 'object') || (typeof x === 'function')) {  // 2.3.3 
+        x.then(value => resolveProcedure({resolve, reject}, value), reason => reject(reason));
+    } else if ((typeof x === 'object' && x !== null) || (typeof x === 'function')) {  // 2.3.3 
         let resolvedOrRejected = false;
         try {
             let then = x.then;      // 2.3.3.1 Let then be x.then
