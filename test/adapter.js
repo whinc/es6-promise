@@ -1,5 +1,5 @@
 var promisesAplusTests = require("promises-aplus-tests");
-var ES6Promise = require('../es5/es6-promise.js');
+var ES6Promise = require('../dist/es6-promise').ES6Promise;
 
 var adapter = {
     resolve: function () {

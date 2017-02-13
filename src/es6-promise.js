@@ -131,5 +131,3 @@ function resolveProcedure({ resolve, reject, promise2 }, x) {
 }
 
 export {ES6Promise}
-
-module.exports = ES6Promise;

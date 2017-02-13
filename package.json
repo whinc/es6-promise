@@ -1,11 +1,12 @@
 {
-  "name": "whinc-es6-promise",
-  "version": "1.0.0",
+  "name": "@whinc/es6-promise",
+  "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/es6-promise.js",
   "scripts": {
-      "build": "babel es6-promise.js -d es5",
-      "test": "promises-aplus-tests test/es6-promise.test.js"
+      "build": "babel src -d dist",
+      "example": "node test/example.js",
+      "test": "promises-aplus-tests test/adapter.js"
   },
   "keywords": ["es6", "Promise", "Promise/A+", "ECMAScript6", "es2015"],
   "author": "whinc",
